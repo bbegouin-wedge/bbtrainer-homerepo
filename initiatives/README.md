@@ -1,21 +1,32 @@
-# Initiatives transverses
+# Initiatives du projet bbtrainer
 
-Une initiative est ici quand elle touche **plus d'un composant ou un contrat**.
-Une évolution interne à un composant vit dans le kanban de ce composant.
+Toute évolution du produit naît ici, même si elle ne touche qu'un dépôt
+(modèle multi-dépôts de la software factory, `spec/multi-depots/` de wedge-factory).
+Quatre niveaux : **initiative projet** `I1` → **epic projet** `I1-E1` → **epic repo**
+`I1-E1-AU` (sa part dans un dépôt ; `AU`, `TB`, `BT` : codes courts des dépôts) →
+**ticket repo** `I1-E1-AU-T3`.
 
-Une initiative = un répertoire `initiatives/<id>/`, où `<id>` vaut
-`I<nn>-<slug>` (ex. `I01-relais-des-faits`). Il porte, selon les besoins :
+Le dossier où se trouve une initiative est sa colonne :
 
-| Fichier | Contenu |
-|---|---|
-| `initiative.md` | objectif, exigences numérotées, statut, découpage (obligatoire) |
-| `maquettes/` | maquettes d'écran |
-| `event-model.md` | commandes, faits, demandes et vues, dans l'ordre du parcours |
-| `contrats.md` | les modifications de contrat attendues, avant code |
+| Colonne | Ce qui s'y produit | Pour passer |
+|---|---|---|
+| `1-backlog/` | une idée, avec son origine ; préfixe de priorité (`01-I2-…`) | priorité |
+| `2-grilling/` | besoins numérotés `I<n>-B<k>` (`grilling.md`) | validation humaine |
+| `3-maquettes/` | écrans `I<n>-M<k>` | validation humaine |
+| `4-contrats/` | cibles des contrats touchés, avant tout code (`contrats.md`, `contrats/`) | validation humaine |
+| `5-epics/` | epics projet, chacun partagé en epics repo (un dossier `I<n>-E<k>-…/epic.md`) | validation humaine |
+| `6-depots/` | les epics repo sont réalisés dans les dépôts, puis intégrés | promotion validée |
+| `7-livree/` | archive, avec la baseline promue | — |
+| `8-abandonnee/` | archive | — |
 
-Le statut est dans l'en-tête d'`initiative.md` :
-`cadrage → contrats → réalisation → intégration → livrée` (ou `abandonnée`).
-À partir de `réalisation`, l'initiative a son manifeste candidat
-`manifests/candidates/<id>.yaml`. Elle est `livrée` à la promotion.
+`initiative.md` porte son origine, écrite une fois :
+
+```yaml
+origine:
+  type: idee | report | remontee | reprise
+  par: humain | chef d'usine
+  le: 2026-11-17
+  source: automaton:A5        # report : I0-B5 ; remontee : I0-E1-AU-T4 ; reprise : <dépôt>:<id>
+```
 
 Modèle : [`_modele/initiative.md`](_modele/initiative.md).
