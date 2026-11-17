@@ -1,0 +1,22 @@
+# La baseline : l'ensemble de versions qui fonctionnent ensemble, aujourd'hui.
+# Il n'y a pas encore de production : c'est la dernière combinaison intégrée.
+# Elle ne change que par la promotion d'un manifeste candidat (ci/integrate
+# --promote), jamais à la main.
+#
+#   sha       commit exact du composant ; null si le dépôt n'a aucun commit
+#   contracts version des contrats de ce home repo avec laquelle ces SHA ont
+#             été intégrés (commit du home repo, ou "worktree" à l'amorçage)
+
+manifest: current
+integrated_at: 2026-11-17
+contracts: worktree
+
+components:
+  automaton:
+    sha: 25aefb043df52e24a1e3debeabccdd92a72b82e9
+  bloodbowltrainer:
+    sha: 7270cf0aa940eb37aba0db481236da8f17662c18
+  bb-testbackend:
+    sha: null            # aucun commit à l'amorçage
+  kreek-references:
+    sha: 7bb651d797d2f077881a75222d891444297e0d4c

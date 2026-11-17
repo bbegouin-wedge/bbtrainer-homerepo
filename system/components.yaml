@@ -1,0 +1,100 @@
+# Les composants du système bbTrainer : qui ils sont, où ils vivent, de quoi
+# ils répondent. Une entrée par dépôt. Les clés sont les identifiants utilisés
+# partout ailleurs (relations, manifestes, contrats, workspace).
+#
+#   repo          URL git, celle que la CI clone
+#   local_path    clone de travail, relatif à la racine du home repo
+#   branch        branche d'intégration du composant
+#   kind          service | client | test-double | data | external
+#   gates         cibles make du composant, appelées par ci/integrate
+#   extractor     script de scripts/extractors/ qui régénère les contrats
+#                 fournis, depuis le code du composant (voir decisions/0002)
+#   mounted_in    pour un dépôt monté à l'intérieur d'un autre dans le workspace
+
+components:
+
+  automaton:
+    repo: git@github.com:Wedge-Digital/automaton.git
+    local_path: ../automaton
+    branch: main
+    kind: service
+    stack: python 3.12 · fastapi · pydantic
+    summary: >
+      Le serveur de règles d'un match de Blood Bowl : un moteur d'automate à
+      pile journalisé (automaton/) et le jeu qui l'utilise (bloodbowl/).
+    responsibilities:
+      - seul détenteur du journal d'un match, seule source de vérité
+      - appliquer les règles du jeu, étape par étape
+      - tirer les dés (suite déterministe par match)
+      - créer un match à la demande du système de gestion (POST /games)
+      - demander les fiches d'équipe au système de gestion
+      - pousser demandes, faits et fin de match sur le canal de chaque coach
+    owns_specs: bloodbowl/specs/
+    gates:
+      install: make install
+      test: make check
+    extractor: automaton_contracts.py
+
+  bloodbowltrainer:
+    repo: git@github.com:bbegouin-wedge/bbtrainer.git
+    local_path: ../bloodbowltrainer
+    branch: main
+    kind: client
+    stack: godot 4.5 · gdscript · noyau rust
+    summary: >
+      bbTrainer, le client de jeu d'un coach : affiche le match et remonte
+      ses décisions au serveur de règles.
+    responsibilities:
+      - afficher le match à un coach (terrain, joueurs, faits)
+      - présenter les demandes qui lui sont adressées et remonter ses commandes
+      - tenir les règles du client du protocole (ordre, rattrapage, reconnexion)
+    owns_specs: specs/
+    gates:
+      install: make install
+      test: make test
+
+  bb-testbackend:
+    repo: null            # pas encore de remote
+    local_path: ../bb-testbackend
+    branch: master
+    kind: test-double
+    stack: python · fastapi
+    summary: >
+      La doublure d'automaton sur le canal du coach : un serveur piloté par un
+      opérateur ou un scénario, pour développer et tester bbTrainer sans le
+      vrai moteur. Aucune règle de Blood Bowl n'y vit.
+    responsibilities:
+      - servir le canal du coach au mot près comme automaton
+      - jouer des scénarios rejouables (point d'entrée de la CI de bbTrainer)
+      - observer la conformité du client aux règles du protocole
+      - se comparer au vrai automaton (make check-automaton)
+    owns_specs: kanban/
+    gates:
+      install: make install
+      test: make check
+
+  kreek-references:
+    repo: git@github.com:Wedge-Digital/kreek_references.git
+    local_path: ../automaton/bloodbowl/data/kreek_references
+    branch: dev
+    kind: data
+    mounted_in:           # là où automaton l'attend (RULES_DIR de son Makefile)
+      component: automaton
+      path: bloodbowl/data/kreek_references
+    summary: >
+      Les règles de référence de Blood Bowl (Kreek), lues par automaton.
+      Clonées par `make fetch_rules` d'automaton, sans version figée.
+    responsibilities:
+      - fournir le texte des règles dont s'inspirent les étapes d'automaton
+
+  management-system:
+    repo: null
+    kind: external
+    summary: >
+      Le système de gestion (bloodbowlclub.com) : crée les matchs et détient
+      les équipes. Hors de ce système ; aucun vrai système n'est branché
+      aujourd'hui, automaton utilise un faux en mémoire.
+    responsibilities:
+      - créer un match (POST /games)
+      - fournir la fiche d'une équipe (fetch_team)
+      - transmettre aux coachs l'identifiant du match

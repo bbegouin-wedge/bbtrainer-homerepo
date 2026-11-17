@@ -1,0 +1,7 @@
+[project]
+name = "bbtrainer-homerepo"
+version = "0.1.0"
+description = "Home repo du système bbTrainer : composants, relations, contrats, manifestes."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = ["pyyaml>=6"]

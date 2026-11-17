@@ -1,0 +1,864 @@
+# GÉNÉRÉ par scripts/extract-contracts depuis automaton — ne pas éditer.
+# Pour le changer : modifier le code de automaton, puis régénérer.
+$schema: https://json-schema.org/draft/2020-12/schema
+title: GameFact
+$defs:
+  BallLanded:
+    additionalProperties: false
+    description: Le ballon est posé sur sa case d'atterrissage, sans Rebond ni Réception.
+    properties:
+      type:
+        const: ball_landed
+        default: ball_landed
+        title: Type
+        type: string
+      square:
+        $ref: '#/$defs/Square'
+    required:
+    - square
+    title: BallLanded
+    type: object
+  Characteristics:
+    additionalProperties: false
+    description: Les caractéristiques d'un joueur, ou leurs modificateurs.
+    properties:
+      MA:
+        title: Ma
+        type: integer
+      ST:
+        title: St
+        type: integer
+      AG:
+        title: Ag
+        type: integer
+      PA:
+        title: Pa
+        type: integer
+      AV:
+        title: Av
+        type: integer
+    required:
+    - MA
+    - ST
+    - AG
+    - PA
+    - AV
+    title: Characteristics
+    type: object
+  CoachID:
+    anyOf:
+    - maxLength: 26
+      minLength: 26
+      pattern: '[0-7][0123456789ABCDEFGHJKMNPQRSTVWXYZ]{25}'
+      type: string
+    - format: binary
+      maxLength: 16
+      minLength: 16
+      type: string
+  CoachJoined:
+    additionalProperties: false
+    description: Le coach de ce camp a rejoint le match.
+    properties:
+      type:
+        const: coach_joined
+        default: coach_joined
+        title: Type
+        type: string
+      side:
+        $ref: '#/$defs/Side'
+      coach_id:
+        $ref: '#/$defs/CoachID'
+    required:
+    - side
+    - coach_id
+    title: CoachJoined
+    type: object
+  CoachRecord:
+    additionalProperties: false
+    properties:
+      id:
+        $ref: '#/$defs/CoachID'
+      name:
+        $ref: '#/$defs/NonEmpty'
+    required:
+    - id
+    - name
+    title: CoachRecord
+    type: object
+  CompetitionRecord:
+    additionalProperties: false
+    properties:
+      id:
+        title: Id
+        type: string
+      name:
+        title: Name
+        type: string
+      season:
+        title: Season
+        type: string
+    required:
+    - id
+    - name
+    - season
+    title: CompetitionRecord
+    type: object
+  DedicatedFans:
+    maximum: 7
+    minimum: 1
+    type: integer
+  DiceRolled:
+    additionalProperties: false
+    description: 'Des dés ont été consommés, dans l''ordre de la suite du match.
+
+
+      Fait avancer le curseur des dés d''autant de jets : le suivant pioche après.'
+    properties:
+      type:
+        const: dice_rolled
+        default: dice_rolled
+        title: Type
+        type: string
+      rolls:
+        items:
+          $ref: '#/$defs/Roll'
+        title: Rolls
+        type: array
+    required:
+    - rolls
+    title: DiceRolled
+    type: object
+  DiceSeed:
+    anyOf:
+    - maxLength: 26
+      minLength: 26
+      pattern: '[0-7][0123456789ABCDEFGHJKMNPQRSTVWXYZ]{25}'
+      type: string
+    - format: binary
+      maxLength: 16
+      minLength: 16
+      type: string
+  Faces:
+    enum:
+    - 3
+    - 6
+    - 8
+    - 16
+    type: integer
+  FanFactorDetermined:
+    additionalProperties: false
+    description: 'Le Facteur de Popularité d''un camp : Fans Dévoués plus Fans Occasionnels.'
+    properties:
+      type:
+        const: fan_factor_determined
+        default: fan_factor_determined
+        title: Type
+        type: string
+      side:
+        $ref: '#/$defs/Side'
+      dedicated_fans:
+        $ref: '#/$defs/DedicatedFans'
+      casual_fans:
+        maximum: 3
+        minimum: 1
+        title: Casual Fans
+        type: integer
+      fan_factor:
+        title: Fan Factor
+        type: integer
+    required:
+    - side
+    - dedicated_fans
+    - casual_fans
+    - fan_factor
+    title: FanFactorDetermined
+    type: object
+  GameID:
+    anyOf:
+    - maxLength: 26
+      minLength: 26
+      pattern: '[0-7][0123456789ABCDEFGHJKMNPQRSTVWXYZ]{25}'
+      type: string
+    - format: binary
+      maxLength: 16
+      minLength: 16
+      type: string
+  GameStarted:
+    additionalProperties: false
+    properties:
+      type:
+        const: game_started
+        default: game_started
+        title: Type
+        type: string
+      game_id:
+        $ref: '#/$defs/GameID'
+      expected_home_coach:
+        $ref: '#/$defs/CoachID'
+      expected_visitor_coach:
+        $ref: '#/$defs/CoachID'
+      home_team:
+        anyOf:
+        - $ref: '#/$defs/TeamID'
+        - type: 'null'
+        default: null
+      visitor_team:
+        anyOf:
+        - $ref: '#/$defs/TeamID'
+        - type: 'null'
+        default: null
+      dice_seed:
+        $ref: '#/$defs/DiceSeed'
+    required:
+    - game_id
+    - expected_home_coach
+    - expected_visitor_coach
+    - dice_seed
+    title: GameStarted
+    type: object
+  KickOffBallScattered:
+    additionalProperties: false
+    description: 'Météo Capricieuse sur Conditions Idéales : le ballon a Valdingué depuis
+
+      sa case d''atterrissage, une case par D8, jusqu''à cette case.
+
+
+      La Valdingue s''arrête sur la première case hors du terrain : d''où 1 à 3 D8.'
+    properties:
+      type:
+        const: kick_off_ball_scattered
+        default: kick_off_ball_scattered
+        title: Type
+        type: string
+      d8s:
+        items:
+          maximum: 8
+          minimum: 1
+          type: integer
+        maxItems: 3
+        minItems: 1
+        title: D8S
+        type: array
+      square:
+        $ref: '#/$defs/Square'
+    required:
+    - d8s
+    - square
+    title: KickOffBallScattered
+    type: object
+  KickOffDeviated:
+    additionalProperties: false
+    description: 'Le ballon a dévié depuis la case cible : D8 de direction, D6 de distance.
+
+
+      La case peut être hors du terrain : l''étape qui l''émet ne la juge pas.'
+    properties:
+      type:
+        const: kick_off_deviated
+        default: kick_off_deviated
+        title: Type
+        type: string
+      d8:
+        maximum: 8
+        minimum: 1
+        title: D8
+        type: integer
+      distance:
+        maximum: 6
+        minimum: 1
+        title: Distance
+        type: integer
+      square:
+        $ref: '#/$defs/Square'
+    required:
+    - d8
+    - distance
+    - square
+    title: KickOffDeviated
+    type: object
+  KickOffEventDrawn:
+    additionalProperties: false
+    description: L'Événement de Coup d'Envoi, lu au tableau avec la somme de 2D6.
+    properties:
+      type:
+        const: kick_off_event_drawn
+        default: kick_off_event_drawn
+        title: Type
+        type: string
+      roll:
+        maximum: 12
+        minimum: 2
+        title: Roll
+        type: integer
+      event:
+        $ref: '#/$defs/KickOffEventKind'
+    required:
+    - roll
+    - event
+    title: KickOffEventDrawn
+    type: object
+  KickOffEventKind:
+    description: Les Événements de Coup d'Envoi, du tableau tiré sur 2D6.
+    enum:
+    - get_the_ref
+    - time_out
+    - solid_defence
+    - high_kick
+    - cheering_fans
+    - brilliant_coaching
+    - changing_weather
+    - quick_snap
+    - blitz
+    - dodgy_snack
+    - pitch_invasion
+    title: KickOffEventKind
+    type: string
+  KickOffTargeted:
+    additionalProperties: false
+    description: Le coup d'envoi vise cette case, dans la moitié de l'équipe qui réceptionne.
+    properties:
+      type:
+        const: kick_off_targeted
+        default: kick_off_targeted
+        title: Type
+        type: string
+      square:
+        $ref: '#/$defs/Square'
+    required:
+    - square
+    title: KickOffTargeted
+    type: object
+  KickingTeamChosen:
+    additionalProperties: false
+    description: Ce camp engage (la défense) ; l'autre réceptionne (l'attaque).
+    properties:
+      type:
+        const: kicking_team_chosen
+        default: kicking_team_chosen
+        title: Type
+        type: string
+      side:
+        $ref: '#/$defs/Side'
+    required:
+    - side
+    title: KickingTeamChosen
+    type: object
+  NonEmpty:
+    minLength: 1
+    type: string
+  PlayerID:
+    anyOf:
+    - maxLength: 26
+      minLength: 26
+      pattern: '[0-7][0123456789ABCDEFGHJKMNPQRSTVWXYZ]{25}'
+      type: string
+    - format: binary
+      maxLength: 16
+      minLength: 16
+      type: string
+  PlayerPlaced:
+    additionalProperties: false
+    description: Ce joueur du camp est posé sur cette case, depuis la réserve ou une autre.
+    properties:
+      type:
+        const: player_placed
+        default: player_placed
+        title: Type
+        type: string
+      side:
+        $ref: '#/$defs/Side'
+      player_id:
+        $ref: '#/$defs/PlayerID'
+      square:
+        $ref: '#/$defs/Square'
+    required:
+    - side
+    - player_id
+    - square
+    title: PlayerPlaced
+    type: object
+  PlayerRecord:
+    additionalProperties: false
+    description: Un joueur de la fiche.
+    properties:
+      id:
+        $ref: '#/$defs/PlayerID'
+      jersey:
+        title: Jersey
+        type: integer
+      name:
+        anyOf:
+        - type: string
+        - type: 'null'
+        title: Name
+      position:
+        $ref: '#/$defs/PositionRecord'
+      stats:
+        $ref: '#/$defs/Characteristics'
+      stat_modifiers:
+        $ref: '#/$defs/Characteristics'
+      skills:
+        items:
+          $ref: '#/$defs/SkillRecord'
+        title: Skills
+        type: array
+      spp:
+        $ref: '#/$defs/SppRecord'
+      value_kpo:
+        anyOf:
+        - type: integer
+        - type: 'null'
+        default: null
+        title: Value Kpo
+      niggling_injuries:
+        title: Niggling Injuries
+        type: integer
+      journeyman:
+        title: Journeyman
+        type: boolean
+      available:
+        title: Available
+        type: boolean
+      status:
+        $ref: '#/$defs/PlayerStatus'
+    required:
+    - id
+    - jersey
+    - name
+    - position
+    - stats
+    - stat_modifiers
+    - skills
+    - spp
+    - niggling_injuries
+    - journeyman
+    - available
+    - status
+    title: PlayerRecord
+    type: object
+  PlayerReserved:
+    additionalProperties: false
+    description: Ce joueur du camp retourne dans le Box des Réserves.
+    properties:
+      type:
+        const: player_reserved
+        default: player_reserved
+        title: Type
+        type: string
+      side:
+        $ref: '#/$defs/Side'
+      player_id:
+        $ref: '#/$defs/PlayerID'
+    required:
+    - side
+    - player_id
+    title: PlayerReserved
+    type: object
+  PlayerStatus:
+    description: La participation d'un joueur au prochain match (Kreek).
+    enum:
+    - Available
+    - MissingNextGame
+    - Retired
+    - Dead
+    title: PlayerStatus
+    type: string
+  PositionRecord:
+    additionalProperties: false
+    properties:
+      uid:
+        title: Uid
+        type: string
+      name:
+        title: Name
+        type: string
+      keywords:
+        items:
+          type: string
+        title: Keywords
+        type: array
+    required:
+    - uid
+    - name
+    - keywords
+    title: PositionRecord
+    type: object
+  Roll:
+    additionalProperties: false
+    description: 'Un jet de dé : sa taille et son résultat.'
+    properties:
+      faces:
+        $ref: '#/$defs/Faces'
+      value:
+        title: Value
+        type: integer
+    required:
+    - faces
+    - value
+    title: Roll
+    type: object
+  RollOffWon:
+    additionalProperties: false
+    description: 'Ce camp a gagné le tir au dé : c''est lui qui choisit d''engager ou non.'
+    properties:
+      type:
+        const: roll_off_won
+        default: roll_off_won
+        title: Type
+        type: string
+      side:
+        $ref: '#/$defs/Side'
+    required:
+    - side
+    title: RollOffWon
+    type: object
+  RosterCode:
+    $ref: '#/$defs/NonEmpty'
+  RosterRecord:
+    additionalProperties: false
+    properties:
+      uid:
+        $ref: '#/$defs/RosterCode'
+      name:
+        $ref: '#/$defs/NonEmpty'
+      tier:
+        anyOf:
+        - type: string
+        - type: 'null'
+        default: null
+        title: Tier
+      logo_url:
+        $ref: '#/$defs/NonEmpty'
+      special_rules:
+        anyOf:
+        - items:
+            type: string
+          type: array
+        - type: 'null'
+        default: null
+        title: Special Rules
+      reroll_cost_kpo:
+        anyOf:
+        - type: integer
+        - type: 'null'
+        default: null
+        title: Reroll Cost Kpo
+    required:
+    - uid
+    - name
+    - logo_url
+    title: RosterRecord
+    type: object
+  Side:
+    enum:
+    - home
+    - visitor
+    type: string
+  SkillCategory:
+    description: La catégorie d'une compétence (Kreek).
+    enum:
+    - GENERAL
+    - AGILITY
+    - STRENGTH
+    - PASSING
+    - DEVIOUS
+    - MUTATIONS
+    - TRAITS
+    title: SkillCategory
+    type: string
+  SkillOrigin:
+    description: La façon dont un joueur a acquis une compétence (Kreek).
+    enum:
+    - base
+    - chosen
+    - random
+    - injury
+    - customised
+    title: SkillOrigin
+    type: string
+  SkillRecord:
+    additionalProperties: false
+    properties:
+      uid:
+        title: Uid
+        type: string
+      name:
+        title: Name
+        type: string
+      category:
+        $ref: '#/$defs/SkillCategory'
+      origin:
+        $ref: '#/$defs/SkillOrigin'
+    required:
+    - uid
+    - name
+    - category
+    - origin
+    title: SkillRecord
+    type: object
+  SppRecord:
+    additionalProperties: false
+    description: Les Points de Star Player d'un joueur.
+    properties:
+      earned:
+        anyOf:
+        - type: integer
+        - type: 'null'
+        default: null
+        title: Earned
+      available:
+        anyOf:
+        - type: integer
+        - type: 'null'
+        default: null
+        title: Available
+    title: SppRecord
+    type: object
+  Square:
+    additionalProperties: false
+    description: Une case du terrain, ou hors du terrain (voir on_pitch).
+    properties:
+      x:
+        title: X
+        type: integer
+      y:
+        title: Y
+        type: integer
+    required:
+    - x
+    - y
+    title: Square
+    type: object
+  TeamFetched:
+    additionalProperties: false
+    description: 'Le système de gestion a fourni la fiche Kreek de l''équipe de ce camp.
+
+
+      La fiche est entière, joueurs indisponibles compris : seuls ses joueurs
+
+      disponibles entrent dans le match.'
+    properties:
+      type:
+        const: team_fetched
+        default: team_fetched
+        title: Type
+        type: string
+      side:
+        $ref: '#/$defs/Side'
+      team_id:
+        $ref: '#/$defs/TeamID'
+      sheet:
+        $ref: '#/$defs/TeamSheet'
+    required:
+    - side
+    - team_id
+    - sheet
+    title: TeamFetched
+    type: object
+  TeamID:
+    anyOf:
+    - maxLength: 26
+      minLength: 26
+      pattern: '[0-7][0123456789ABCDEFGHJKMNPQRSTVWXYZ]{25}'
+      type: string
+    - format: binary
+      maxLength: 16
+      minLength: 16
+      type: string
+  TeamRecord:
+    additionalProperties: false
+    description: La partie `team` de la fiche.
+    properties:
+      id:
+        $ref: '#/$defs/TeamID'
+      name:
+        $ref: '#/$defs/NonEmpty'
+      logo_url:
+        anyOf:
+        - type: string
+        - type: 'null'
+        default: null
+        title: Logo Url
+      coach:
+        $ref: '#/$defs/CoachRecord'
+      roster:
+        $ref: '#/$defs/RosterRecord'
+      competition:
+        anyOf:
+        - $ref: '#/$defs/CompetitionRecord'
+        - type: 'null'
+        default: null
+      team_value_kpo:
+        anyOf:
+        - type: integer
+        - type: 'null'
+        default: null
+        title: Team Value Kpo
+      current_team_value_kpo:
+        anyOf:
+        - type: integer
+        - type: 'null'
+        default: null
+        title: Current Team Value Kpo
+      treasury_kpo:
+        anyOf:
+        - type: integer
+        - type: 'null'
+        default: null
+        title: Treasury Kpo
+      dedicated_fans:
+        $ref: '#/$defs/DedicatedFans'
+      rerolls:
+        title: Rerolls
+        type: integer
+      assistant_coaches:
+        title: Assistant Coaches
+        type: integer
+      cheerleaders:
+        title: Cheerleaders
+        type: integer
+      apothecary:
+        title: Apothecary
+        type: boolean
+    required:
+    - id
+    - name
+    - coach
+    - roster
+    - dedicated_fans
+    - rerolls
+    - assistant_coaches
+    - cheerleaders
+    - apothecary
+    title: TeamRecord
+    type: object
+  TeamSetUp:
+    additionalProperties: false
+    description: Le coach de ce camp a validé sa formation, déjà dans les cases des joueurs.
+    properties:
+      type:
+        const: team_set_up
+        default: team_set_up
+        title: Type
+        type: string
+      side:
+        $ref: '#/$defs/Side'
+    required:
+    - side
+    title: TeamSetUp
+    type: object
+  TeamSheet:
+    additionalProperties: false
+    description: La fiche d'équipe entière, au format d'export Kreek.
+    properties:
+      schema_version:
+        const: 1
+        title: Schema Version
+        type: integer
+      edition:
+        const: Blood Bowl 2025
+        title: Edition
+        type: string
+      team:
+        $ref: '#/$defs/TeamRecord'
+      players:
+        items:
+          $ref: '#/$defs/PlayerRecord'
+        maxItems: 16
+        minItems: 1
+        title: Players
+        type: array
+    required:
+    - schema_version
+    - edition
+    - team
+    - players
+    title: TeamSheet
+    type: object
+  TouchbackGiven:
+    additionalProperties: false
+    description: 'Remise en jeu : le coach de ce camp a donné le ballon à ce joueur.'
+    properties:
+      type:
+        const: touchback_given
+        default: touchback_given
+        title: Type
+        type: string
+      side:
+        $ref: '#/$defs/Side'
+      player_id:
+        $ref: '#/$defs/PlayerID'
+    required:
+    - side
+    - player_id
+    title: TouchbackGiven
+    type: object
+  Weather:
+    description: Les conditions du Tableau de Météo.
+    enum:
+    - sweltering_heat
+    - very_sunny
+    - perfect_conditions
+    - pouring_rain
+    - blizzard
+    title: Weather
+    type: string
+  WeatherDetermined:
+    additionalProperties: false
+    description: La météo du match, lue au Tableau de Météo avec la somme de 2D6.
+    properties:
+      type:
+        const: weather_determined
+        default: weather_determined
+        title: Type
+        type: string
+      roll:
+        maximum: 12
+        minimum: 2
+        title: Roll
+        type: integer
+      weather:
+        $ref: '#/$defs/Weather'
+    required:
+    - roll
+    - weather
+    title: WeatherDetermined
+    type: object
+discriminator:
+  mapping:
+    ball_landed: '#/$defs/BallLanded'
+    coach_joined: '#/$defs/CoachJoined'
+    dice_rolled: '#/$defs/DiceRolled'
+    fan_factor_determined: '#/$defs/FanFactorDetermined'
+    game_started: '#/$defs/GameStarted'
+    kick_off_ball_scattered: '#/$defs/KickOffBallScattered'
+    kick_off_deviated: '#/$defs/KickOffDeviated'
+    kick_off_event_drawn: '#/$defs/KickOffEventDrawn'
+    kick_off_targeted: '#/$defs/KickOffTargeted'
+    kicking_team_chosen: '#/$defs/KickingTeamChosen'
+    player_placed: '#/$defs/PlayerPlaced'
+    player_reserved: '#/$defs/PlayerReserved'
+    roll_off_won: '#/$defs/RollOffWon'
+    team_fetched: '#/$defs/TeamFetched'
+    team_set_up: '#/$defs/TeamSetUp'
+    touchback_given: '#/$defs/TouchbackGiven'
+    weather_determined: '#/$defs/WeatherDetermined'
+  propertyName: type
+oneOf:
+- $ref: '#/$defs/GameStarted'
+- $ref: '#/$defs/TeamFetched'
+- $ref: '#/$defs/CoachJoined'
+- $ref: '#/$defs/DiceRolled'
+- $ref: '#/$defs/FanFactorDetermined'
+- $ref: '#/$defs/WeatherDetermined'
+- $ref: '#/$defs/RollOffWon'
+- $ref: '#/$defs/KickingTeamChosen'
+- $ref: '#/$defs/PlayerPlaced'
+- $ref: '#/$defs/PlayerReserved'
+- $ref: '#/$defs/TeamSetUp'
+- $ref: '#/$defs/KickOffTargeted'
+- $ref: '#/$defs/KickOffDeviated'
+- $ref: '#/$defs/KickOffEventDrawn'
+- $ref: '#/$defs/KickOffBallScattered'
+- $ref: '#/$defs/BallLanded'
+- $ref: '#/$defs/TouchbackGiven'

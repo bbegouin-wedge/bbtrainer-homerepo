@@ -1,0 +1,154 @@
+# Le canal du coach : contrat entre automaton (et sa doublure bb-testbackend)
+# et le client de jeu bbTrainer.
+#
+# ÉCRIT À LA MAIN : l'enveloppe des messages est construite par
+# bloodbowl/api/channels.py d'automaton, sans modèle pydantic. Le contenu des
+# faits et des commandes, lui, est généré (facts.schema.yaml,
+# commands.schema.yaml). Lu sur automaton 25aefb0.
+#
+# Le détail des règles du client (ordre des Responses, rattrapage, refus) :
+# bloodbowltrainer docs/protocole-client-serveur.md, qui doit suivre ce contrat.
+
+asyncapi: 3.0.0
+info:
+  title: Canal du coach
+  version: 1.0.0
+  description: |
+    Une websocket par coach, messages JSON texte. Ouvrir le canal, c'est
+    rejoindre le match : le serveur envoie d'abord tous les faits du journal
+    (rattrapage), puis traite lui-même `join_game` pour ce coach ; à une
+    reconnexion, il renvoie plutôt ses demandes encore ouvertes.
+
+    L'auteur d'une commande est le coach du chemin. Chaque Response
+    (`accepted` / `refused`) répond à la plus ancienne commande sans Response.
+
+servers:
+  local:
+    host: 127.0.0.1:8000
+    protocol: ws
+
+channels:
+  coach:
+    address: /games/{game_id}/coaches/{coach_id}/ws
+    parameters:
+      game_id:
+        description: ULID du match (rendu par POST /games).
+      coach_id:
+        description: ULID du coach ; doit jouer ce match.
+    bindings:
+      ws:
+        bindingVersion: 0.1.0
+    messages:
+      fact: { $ref: '#/components/messages/fact' }
+      request: { $ref: '#/components/messages/request' }
+      accepted: { $ref: '#/components/messages/accepted' }
+      refused: { $ref: '#/components/messages/refused' }
+      finished: { $ref: '#/components/messages/finished' }
+      command: { $ref: '#/components/messages/command' }
+
+operations:
+  announce:
+    action: send
+    channel: { $ref: '#/channels/coach' }
+    summary: Le serveur annonce au coach, sans attendre de réponse.
+    messages:
+      - $ref: '#/channels/coach/messages/fact'
+      - $ref: '#/channels/coach/messages/request'
+      - $ref: '#/channels/coach/messages/accepted'
+      - $ref: '#/channels/coach/messages/refused'
+      - $ref: '#/channels/coach/messages/finished'
+  decide:
+    action: receive
+    channel: { $ref: '#/channels/coach' }
+    summary: Le coach envoie une commande, une par message.
+    messages:
+      - $ref: '#/channels/coach/messages/command'
+
+components:
+  messages:
+
+    fact:
+      summary: Un fait du match, poussé aux deux coachs.
+      description: |
+        `seq` est le rang du fait dans le journal, le même au relais et au
+        rattrapage. Le client range par `seq`, ignore un `seq` déjà reçu ; un
+        trou signale des faits manqués : rouvrir le canal.
+      payload:
+        type: object
+        additionalProperties: false
+        required: [type, seq, fact]
+        properties:
+          type: { const: fact }
+          seq: { type: integer, minimum: 0 }
+          fact: { $ref: './facts.schema.yaml' }
+
+    request:
+      summary: Une demande qui attend une décision de ce coach, et de lui seul.
+      description: |
+        Une même demande peut arriver deux fois (annonce, puis rattrapage) :
+        elle se reconnaît à `key` et `request_id`.
+      payload:
+        type: object
+        additionalProperties: false
+        required: [type, key, request_id, options]
+        properties:
+          type: { const: request }
+          key: { type: string, description: 'Clé de la demande (ex. kick_off_choice).' }
+          request_id: { type: integer }
+          options:
+            type: object
+            description: |
+              Sans schéma côté serveur ; une clé absente vaut « rien à
+              proposer ». Clés connues : `rejected` (liste de motifs, après un
+              refus), `limit` (solid_defence, quick_snap), `square` {x, y}
+              (high_kick).
+            properties:
+              rejected: { type: array, items: { type: string } }
+              limit: { type: integer }
+              square:
+                type: object
+                properties: { x: { type: integer }, y: { type: integer } }
+
+    accepted:
+      summary: La commande a été enregistrée.
+      payload:
+        type: object
+        additionalProperties: false
+        required: [type, command]
+        properties:
+          type: { const: accepted }
+          command: { $ref: './commands.schema.yaml' }
+
+    refused:
+      summary: La commande, ou l'admission au canal, est refusée.
+      description: |
+        404 match inconnu (puis fermeture 4404) · 403 coach hors match (puis
+        fermeture 4403) · 409 aucune demande ouverte pour cette commande ·
+        422 commande mal formée · 500 erreur interne.
+      payload:
+        type: object
+        additionalProperties: false
+        required: [type, status, detail]
+        properties:
+          type: { const: refused }
+          status: { type: integer, enum: [403, 404, 409, 422, 500] }
+          detail: { type: string }
+
+    finished:
+      summary: Le match est terminé (sa pile est vide).
+      payload:
+        type: object
+        additionalProperties: false
+        required: [type, output]
+        properties:
+          type: { const: finished }
+          output: { description: Sortie de l'étape racine. }
+
+    command:
+      summary: La décision du coach.
+      payload:
+        type: object
+        additionalProperties: false
+        required: [command]
+        properties:
+          command: { $ref: './commands.schema.yaml' }
