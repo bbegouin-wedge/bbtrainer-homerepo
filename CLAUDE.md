@@ -10,16 +10,16 @@ par plusieurs dépôts et garde ce qui n'appartient à aucun d'eux :
 - **les contrats** entre composants (`contracts/`) ;
 - **quelles versions marchent ensemble** (`manifests/current.yaml`), et celles
   qu'une initiative propose (`manifests/candidates/`) ;
-- **les initiatives transverses** (`initiatives/`) et les **décisions
-  transverses** (`decisions/`).
+- **les initiatives du projet** (`initiatives/`), conduites par la software
+  factory, et les **décisions transverses** (`decisions/`).
 
 Les composants, leurs dépôts voisins (`../<composant>`) :
 
-| Composant | Rôle | Kanban propre |
-|---|---|---|
-| `automaton` | serveur de règles d'un match, seul détenteur du journal | `bloodbowl/specs/` |
-| `bloodbowltrainer` | bbTrainer, le client de jeu Godot d'un coach | `specs/` |
-| `bb-testbackend` | doublure d'automaton sur le canal du coach | `kanban/` |
+| Composant | Code | Rôle | Reçoit ses epics composant dans |
+|---|---|---|---|
+| `automaton` | `AU` | serveur de règles d'un match, seul détenteur du journal | `bloodbowl/specs/` |
+| `bloodbowltrainer` | `BT` | bbTrainer, le client de jeu Godot d'un coach | `specs/` |
+| `bb-testbackend` | `TB` | doublure d'automaton sur le canal du coach | `kanban/` (hors format, à migrer) |
 | `kreek-references` | règles de référence, lues par automaton | — |
 | `management-system` | externe (bloodbowlclub.com) : crée les matchs, détient les équipes | — |
 
@@ -29,27 +29,24 @@ le niveau système.
 
 ## L'ordre du flux
 
-Une évolution qui touche **plus d'un composant, ou un contrat**, suit cet ordre.
-Une évolution interne à un composant ne passe pas par ici.
+Toute évolution du produit naît ici, même si elle ne touche qu'un composant
+(`decisions/0003`). La software factory la conduit, étape par étape, et chaque
+étape est validée par l'utilisateur :
 
-1. **Initiative** — `initiatives/<id>/` : exigences, maquettes, event model,
-   découpage par composant (modèle : `initiatives/_modele/`). Skill
-   `initiative-systeme`.
-2. **Contrats et relations d'abord** — la modification de contrat est
-   écrite et validée **avant** tout code : contrat écrit à la main modifié
-   ici ; contrat généré décrit dans l'initiative (il sera régénéré). Une
-   nouvelle dépendance s'ajoute à `system/relations.yaml`. Un choix
-   transverse structurant donne un ADR dans `decisions/`.
-3. **Découpage dans les composants** — chaque part devient des tickets dans
-   le kanban **du composant**, selon ses propres règles. Le home repo ne
-   porte pas de tickets.
-4. **Manifeste candidat** — `manifests/candidates/<id>.yaml` fixe les SHA des
-   composants livrés pour l'initiative (les autres héritent de la baseline).
-5. **Intégration** — `uv run ci/integrate manifests/candidates/<id>.yaml` :
-   portes de chaque composant, doublure contre le vrai, dérive des contrats.
-6. **Promotion** — sur validation de l'utilisateur, `--promote` : la baseline
-   prend les SHA du candidat. Les contrats régénérés et `current.yaml` sont
-   commités ensemble.
+1. **Grilling** — les besoins métier, le périmètre (`initiatives/2-grilling/`).
+2. **Maquettes**, s'il y a de l'écran.
+3. **Epics projet** — les étapes métier livrables, avec leurs scénarios de bout
+   en bout (`initiatives/4-epics/`).
+4. **Projection**, epic projet par epic projet — ses epics composant et les
+   changements de contrat entre composants, relus par chaque composant
+   (`initiatives/5-realisation/`). Les responsabilités de `system/components.yaml`
+   sont figées : elles ne changent que par un ADR (processus d'architecture).
+5. **Dans les composants** — chaque epic composant devient des tickets dans le
+   kanban **du composant**, selon ses propres règles. Le home repo ne porte pas
+   de tickets.
+6. **Intégration et promotion, par epic projet** — manifeste candidat,
+   `ci/integrate` (portes, doublure contre le vrai, dérive des contrats,
+   scénarios de bout en bout), puis `--promote` sur validation de l'utilisateur.
 
 ## Règles
 
@@ -70,9 +67,14 @@ Une évolution interne à un composant ne passe pas par ici.
 - **Ne jamais modifier un dépôt de composant depuis ici** sans le demander :
   ses fichiers relèvent de ses propres règles.
 - `make check` (structure + dérive) passe avant tout commit du home repo.
+- **La software factory commite les étapes que l'utilisateur valide** : chaque
+  initiative avance sur sa branche `flux/I<n>`, et chaque étape validée entre
+  sur `main` par la gestion de configuration de l'usine, après `make check`.
+  Ne pas déplacer à la main une initiative que l'usine conduit.
 - Échanger en français, avec le vocabulaire des composants (coach, joueur,
   commande, demande, fait…).
-- Ne commiter et ne pousser que sur demande ; sur `main`, créer une branche.
+- Hors de l'usine : ne commiter et ne pousser que sur demande ; sur `main`,
+  créer une branche.
 
 ## Outils
 
