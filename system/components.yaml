@@ -18,6 +18,7 @@ components:
     local_path: ../automaton
     branch: main
     kind: service
+    code: AU
     stack: python 3.12 · fastapi · pydantic
     summary: >
       Le serveur de règles d'un match de Blood Bowl : un moteur d'automate à
@@ -40,6 +41,7 @@ components:
     local_path: ../bloodbowltrainer
     branch: main
     kind: client
+    code: BL
     stack: godot 4.5 · gdscript · noyau rust
     summary: >
       bbTrainer, le client de jeu d'un coach : affiche le match et remonte
