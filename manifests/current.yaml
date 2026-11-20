@@ -16,7 +16,5 @@ components:
     sha: 25aefb043df52e24a1e3debeabccdd92a72b82e9
   bloodbowltrainer:
     sha: 7270cf0aa940eb37aba0db481236da8f17662c18
-  bb-testbackend:
-    sha: null            # aucun commit à l'amorçage
   kreek-references:
     sha: 7bb651d797d2f077881a75222d891444297e0d4c

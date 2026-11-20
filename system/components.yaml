@@ -53,26 +53,6 @@ components:
       install: make install
       test: make test
 
-  bb-testbackend:
-    repo: null            # pas encore de remote
-    local_path: ../bb-testbackend
-    branch: master
-    kind: test-double
-    stack: python · fastapi
-    summary: >
-      La doublure d'automaton sur le canal du coach : un serveur piloté par un
-      opérateur ou un scénario, pour développer et tester bbTrainer sans le
-      vrai moteur. Aucune règle de Blood Bowl n'y vit.
-    responsibilities:
-      - servir le canal du coach au mot près comme automaton
-      - jouer des scénarios rejouables (point d'entrée de la CI de bbTrainer)
-      - observer la conformité du client aux règles du protocole
-      - se comparer au vrai automaton (make check-automaton)
-    owns_specs: kanban/
-    gates:
-      install: make install
-      test: make check
-
   kreek-references:
     repo: git@github.com:Wedge-Digital/kreek_references.git
     local_path: ../automaton/bloodbowl/data/kreek_references

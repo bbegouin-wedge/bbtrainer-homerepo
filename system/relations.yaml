@@ -22,28 +22,6 @@ relations:
       Le canal websocket du coach. bbTrainer en a sa propre lecture,
       docs/protocole-client-serveur.md (v0) : elle doit suivre ce contrat.
 
-  - id: client-tests-on-testbackend
-    from: bloodbowltrainer
-    to: bb-testbackend
-    role: consumes
-    contract: events/match/coach-channel.asyncapi.yaml
-    status: formal
-    notes: >
-      En développement et en CI, bbTrainer joue contre la doublure
-      (make play SCENARIO=…), sur le même contrat que le vrai serveur.
-
-  - id: testbackend-doubles-automaton
-    from: bb-testbackend
-    to: automaton
-    role: implements
-    contract: events/match/coach-channel.asyncapi.yaml
-    also:
-      - api/automaton/openapi.yaml#/paths/~1games
-    status: formal
-    notes: >
-      Vérifié par `make check-automaton` dans bb-testbackend : la même suite
-      d'échanges contre la doublure et contre le vrai automaton.
-
   - id: management-creates-games
     from: management-system
     to: automaton
